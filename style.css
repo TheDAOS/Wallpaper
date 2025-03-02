@@ -1,0 +1,15 @@
+body {
+    height: 100vh;
+}
+
+.d-flex {
+    height: 100%;
+}
+
+.card {
+    width: fit-content;
+}
+
+#S-download {
+    display: none;
+}

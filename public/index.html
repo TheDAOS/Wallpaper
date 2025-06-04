@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wallpaper ZIP Downloader</title>
+    <style>
+      body {
+        font-family: Arial;
+        text-align: center;
+        padding: 2rem;
+        background: #f9f9f9;
+      }
+      #progress {
+        width: 80%;
+        height: 20px;
+        margin: 1rem auto;
+        background: #eee;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      #bar {
+        height: 100%;
+        width: 0%;
+        background: #4caf50;
+        transition: width 0.3s;
+      }
+      button {
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        cursor: pointer;
+        background: #2196f3;
+        color: white;
+        border: none;
+        border-radius: 5px;
+      }
+      #status,
+      #size {
+        margin-top: 1rem;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Wallpaper Downloader</h1>
+    <div id="size">Calculating size...</div>
+    <div id="progress"><div id="bar"></div></div>
+    <div id="status">Waiting...</div>
+    <button onclick="download()">Download ZIP</button>
+
+    <script>
+      async function getSize() {
+        const res = await fetch("/zip-size");
+        const data = await res.json();
+        const mb = (data.size / 1024 / 1024).toFixed(2);
+        document.getElementById(
+          "size"
+        ).textContent = `Estimated ZIP size: ${mb} MB`;
+      }
+
+      function listenToProgress() {
+        const evt = new EventSource("/progress");
+        evt.onmessage = (e) => {
+          const msg = e.data;
+          document.getElementById("status").textContent = msg;
+
+          const match = msg.match(/([\d.]+) MB/);
+          if (match) {
+            const current = parseFloat(match[1]);
+            const bar = document.getElementById("bar");
+            const estimated = parseFloat(
+              document
+                .getElementById("size")
+                .textContent.match(/([\d.]+) MB/)[1]
+            );
+            const percent = Math.min(100, (current / estimated) * 100);
+            bar.style.width = percent + "%";
+          }
+        };
+      }
+
+      function download() {
+        const a = document.createElement("a");
+        a.href = "/download";
+        a.click();
+      }
+
+      getSize();
+      listenToProgress();
+    </script>
+  </body>
+</html>
